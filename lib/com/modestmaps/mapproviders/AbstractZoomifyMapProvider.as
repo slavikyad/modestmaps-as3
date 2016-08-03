@@ -125,17 +125,21 @@ package com.modestmaps.mapproviders
 	    }
 
 
-		//methods from original zoomify class TileCache.as
-		private function calculatePathLimits(tileSize:uint, fullWidth:uint, fullHeight:uint):void {
+		//this is better way to calculate TileGroup
+		
+		private function calculatePathLimits(tileSize:uint, fullWidth:uint, fullHeight:uint):void 
+		{
 			var max:Number = Math.max(fullWidth, fullHeight ) / Number(tileSize);
-			for(var i:uint = 0; (1 << i) < max; i++) {
+			for (var i:uint = 0; (1 << i) < max; i++) 
+			{
 				widthScale = fullWidth / ((1 << i) * tileSize);
 				heightScale = fullHeight / ((1 << i) * tileSize);
 				if(max > (1 << i)) { widthScale = fullWidth / ((1 << (i + 1)) * tileSize); }
 				if(max > (1 << i)) { heightScale = fullHeight / ((1 << (i + 1)) * tileSize); }
 			}
 			limitsArray = [];
-			for(var t:uint = 0; t <= i; t++) {
+			for (var t:uint = 0; t <= i; t++) 
+			{
 				var tileNumber:uint = 0;
 				var n:uint = 1 << t;
 				limitsArray.push(Math.ceil(widthScale * n) * Math.ceil(heightScale * n));
