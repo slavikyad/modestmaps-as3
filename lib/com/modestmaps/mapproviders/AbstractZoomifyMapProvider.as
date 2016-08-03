@@ -12,6 +12,14 @@ package com.modestmaps.mapproviders
 	{
 	    private var __baseDirectory:String;
 	    private var __groups:/*Coordinate*/Array;
+
+
+		//variables from original zoomify class TileCache.as
+		private var widthScale:Number;
+		private var heightScale:Number;
+		private var limitsArray:Array;
+		//-------------------------------------------------
+
 	
 	    public function AbstractZoomifyMapProvider()
         {
@@ -73,6 +81,9 @@ package com.modestmaps.mapproviders
 	        __bottomRightInLimit = (new Coordinate(height, width, zoom)).zoomTo(zoom - 8);
 	
 	        __groups = [];
+
+			calculatePathLimits(256, width, height);
+
 	        var i:Number = 0;
 	        
 	       /*
@@ -98,26 +109,38 @@ package com.modestmaps.mapproviders
 	                }
 	            }   
 	        }
+			trace(__groups);
 	    }
 	    
 	    private function coordinateGroup(c:Coordinate):Number
 	    {
-	        for(var i:Number = 0; i < __groups.length; i += 1) {
-	            if(i+1 == __groups.length)
-	                return i;
-	        
-	            var g:Coordinate = __groups[i+1].copy();
-	
-	            if(c.zoom < g.zoom || (c.zoom == g.zoom && (c.row < g.row || (c.row == g.row && c.column < g.column))))
-	                return i;
-	        }
-	        return -1;
+			var offset:Number = c.row * Math.ceil((1 << c.zoom) * widthScale) + c.column;
+			for(var i:uint = 0; i < c.zoom; i++) { offset += limitsArray[i]; }
+			return Math.floor(offset / 256);
 	    }
 	
 	    public function getTileUrls(coord:Coordinate):Array
 	    {
-	        return [ __baseDirectory+'TileGroup'+coordinateGroup(coord)+'/'+(coord.zoom)+'-'+(coord.column)+'-'+(coord.row)+'.jpg' ];
+			return [ __baseDirectory+'TileGroup'+coordinateGroup(coord)+'/'+(coord.zoom)+'-'+(coord.column)+'-'+(coord.row)+'.jpg' ];
 	    }
+
+
+		//methods from original zoomify class TileCache.as
+		private function calculatePathLimits(tileSize:uint, fullWidth:uint, fullHeight:uint):void {
+			var max:Number = Math.max(fullWidth, fullHeight ) / Number(tileSize);
+			for(var i:uint = 0; (1 << i) < max; i++) {
+				widthScale = fullWidth / ((1 << i) * tileSize);
+				heightScale = fullHeight / ((1 << i) * tileSize);
+				if(max > (1 << i)) { widthScale = fullWidth / ((1 << (i + 1)) * tileSize); }
+				if(max > (1 << i)) { heightScale = fullHeight / ((1 << (i + 1)) * tileSize); }
+			}
+			limitsArray = [];
+			for(var t:uint = 0; t <= i; t++) {
+				var tileNumber:uint = 0;
+				var n:uint = 1 << t;
+				limitsArray.push(Math.ceil(widthScale * n) * Math.ceil(heightScale * n));
+			}
+		}
 	}
 	
 }
